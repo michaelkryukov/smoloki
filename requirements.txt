@@ -1,0 +1,4 @@
+aiohttp~=3.8.3
+
+# Development requirements
+pytest
