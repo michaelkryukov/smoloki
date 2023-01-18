@@ -1,14 +1,13 @@
 .PHONY: all
 
-all: lint test
+all: format lint test
+
+format:
+	python3 -m black .
 
 lint:
-	python3 -c "import flake8" || python3 -m pip install flake8 flake8-quotes
-	flake8 smoloki.py tests/ --count --select=E9,F63,F7,F82 --show-source --statistics
-	flake8 smoloki.py tests/ --count --max-complexity=10 --max-line-length=127 --statistics
+	python3 -m black . --check
+	python3 -m flake8 . --inline-quotes '"' --max-complexity=10 --max-line-length=127
 
 test:
-	python3 -c "import pytest" || python3 -m pip install pytest
-	python3 -c "import anyio" || python3 -m pip install anyio
-	python3 -c "import requests" || python3 -m pip install requests
-	ENVIRONMENT=test python3 -m pytest tests/
+	python3 -m pytest tests/

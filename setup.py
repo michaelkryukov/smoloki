@@ -4,9 +4,9 @@ import os
 import setuptools
 
 
-assert os.environ.get('GITHUB_REF_TYPE') == 'tag'
-assert os.environ.get('GITHUB_REF_NAME')
-VERSION = os.environ['GITHUB_REF_NAME']
+assert os.environ.get("GITHUB_REF_TYPE") == "tag"
+assert os.environ.get("GITHUB_REF_NAME")
+VERSION = os.environ["GITHUB_REF_NAME"]
 
 
 with open("README.md", "r") as fh:
@@ -23,7 +23,7 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/michaelkryukov/smoloki",
-    packages=setuptools.find_packages(include=('smoloki',)),
+    packages=setuptools.find_packages(include=("smoloki",)),
     install_requires=[
         "aiohttp~=3.8.3",
     ],

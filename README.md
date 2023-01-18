@@ -22,5 +22,6 @@ def as_request_completed():
 
 ## Configuration
 
-This library uses `LOKI_BASE_ENDPOINT` environment variable to acquire
-base address for requests.
+- `SMOLOKI_BASE_ENDPOINT` – base address of Loki server.
+- `SMOLOKI_BASE_LABELS` - base labels that will be added to logs.
+- `SMOLOKI_BASE_INFORMATION` - base information that will be added to logs.
