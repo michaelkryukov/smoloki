@@ -1,5 +1,7 @@
 # smoloki
 
+[![PyPI version](https://badge.fury.io/py/smoloki.svg)](https://badge.fury.io/py/smoloki)
+
 Tiny library to push logs to `Grafana Loki` in `logfmt` format.
 
 ```py
