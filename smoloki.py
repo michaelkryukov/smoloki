@@ -134,4 +134,3 @@ async def push(labels, information, base_endpoint: str = SMOLOKI_BASE_ENDPOINT):
 def push_sync(*args, **kwargs):
     """Push log to loki (synchronously)."""
     _run_as_sync(push(*args, **kwargs))
-
