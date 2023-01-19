@@ -3,4 +3,5 @@ aiohttp~=3.8.3
 # Development requirements
 black
 flake8
+flake8-quotes
 pytest
