@@ -71,9 +71,9 @@ def logfmt_dump(data: dict) -> str:
             raise ValueError("Make sure keys are strings")
         if not key.isidentifier():
             raise ValueError("Make sure keys are valid identifiers")
-        if not isinstance(value, str):
-            raise ValueError("Make sure values are strings")
-        items.append(f"{key}={_logfmt_escape(value)}")
+        if not isinstance(value, (str, int, float)):
+            raise ValueError("Make sure values are strings, integers or floats")
+        items.append(f"{key}={_logfmt_escape(str(value))}")
     return " ".join(items)
 
 

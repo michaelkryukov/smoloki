@@ -15,6 +15,11 @@ def test_dump():
         assert logfmt_dump(original_value) == dumped_value
 
 
+def test_dump_int_and_float():
+    assert logfmt_dump({"key": 1}) == "key=1"
+    assert logfmt_dump({"key": 1.5}) == "key=1.5"
+
+
 def test_load():
     for original_value, dumped_value in CASES:
         assert logfmt_load(dumped_value) == original_value
