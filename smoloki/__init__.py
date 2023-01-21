@@ -4,6 +4,7 @@ import json
 import time
 import asyncio
 import aiohttp
+import logging
 
 
 SMOLOKI_BASE_ENDPOINT_RAW = os.environ.get("SMOLOKI_BASE_ENDPOINT") or ""
@@ -128,7 +129,7 @@ async def push(labels, information, base_endpoint: str = SMOLOKI_BASE_ENDPOINT):
                 },
             )
     except Exception:
-        pass
+        logging.exception('Error while sending logs with smoloki:')
 
 
 def push_sync(*args, **kwargs):
