@@ -129,7 +129,7 @@ async def push(labels, information, base_endpoint: str = SMOLOKI_BASE_ENDPOINT):
                 },
             )
     except Exception:
-        logging.exception('Error while sending logs with smoloki:')
+        logging.exception("Error while sending logs with smoloki:")
 
 
 def push_sync(*args, **kwargs):
