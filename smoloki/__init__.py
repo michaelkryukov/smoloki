@@ -8,7 +8,7 @@ import logging
 
 
 SMOLOKI_BASE_ENDPOINT_RAW = os.environ.get("SMOLOKI_BASE_ENDPOINT") or ""
-SMOLOKI_BASE_ENDPOINT = SMOLOKI_BASE_ENDPOINT_RAW.rstrip("/")
+SMOLOKI_BASE_ENDPOINT = SMOLOKI_BASE_ENDPOINT_RAW
 
 SMOLOKI_BASE_LABELS_RAW = os.environ.get("SMOLOKI_BASE_LABELS") or "{}"
 SMOLOKI_BASE_LABELS = json.loads(SMOLOKI_BASE_LABELS_RAW)
@@ -78,14 +78,15 @@ def logfmt_dump(data: dict) -> str:
     return " ".join(items)
 
 
-async def request(
-    method, endpoint, base_endpoint: str = SMOLOKI_BASE_ENDPOINT, **kwargs
-):
+async def request(method, endpoint, base_endpoint=None, **kwargs):
     """Perform some request to loki endpoint."""
+
+    base_endpoint = base_endpoint or SMOLOKI_BASE_ENDPOINT
+
     async with aiohttp.ClientSession() as session:
         async with session.request(
             method,
-            f"{base_endpoint}{endpoint}",
+            f"{base_endpoint.rstrip('/')}{endpoint}",
             params=kwargs,
         ) as response:
             return await response.json()
@@ -96,16 +97,19 @@ def request_sync(*args, **kwargs):
     _run_as_sync(request(*args, **kwargs))
 
 
-async def push(labels, information, base_endpoint: str = SMOLOKI_BASE_ENDPOINT):
+async def push(labels, information, base_endpoint=None):
     """Push log to loki."""
 
+    base_endpoint = base_endpoint or SMOLOKI_BASE_ENDPOINT
+
     if not base_endpoint:
+        logging.warning("No 'base_endpoint' configured for smoloki")
         return
 
     try:
         async with aiohttp.ClientSession() as session:
-            await session.post(
-                f"{base_endpoint}/loki/api/v1/push",
+            response = await session.post(
+                f"{base_endpoint.rstrip('/')}/loki/api/v1/push",
                 json={
                     "streams": [
                         {
@@ -128,6 +132,7 @@ async def push(labels, information, base_endpoint: str = SMOLOKI_BASE_ENDPOINT):
                     ],
                 },
             )
+            response.raise_for_status()
     except Exception:
         logging.exception("Error while sending logs with smoloki:")
 
