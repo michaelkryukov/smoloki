@@ -2,11 +2,13 @@ from smoloki import logfmt_load, logfmt_dump
 
 CASES = [
     [{"key": "value"}, "key=value"],
-    [{"key": '"value"'}, 'key=\\"value\\"'],
+    [{"key": '"value"'}, 'key="\\"value\\""'],
     [{"key": "v=alue"}, 'key="v=alue"'],
     [{"key": "va l ue"}, 'key="va l ue"'],
     [{"key": "va\\l\\ue"}, "key=va\\\\l\\\\ue"],
     [{"key": "va\nl\nue"}, "key=va\\nl\\nue"],
+    [{"key": "'"}, "key='"],
+    [{"key": '"'}, 'key="\\""'],
 ]
 
 

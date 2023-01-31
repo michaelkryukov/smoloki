@@ -29,7 +29,7 @@ def _logfmt_escape(value):
     value = value.replace("\\", "\\\\")
     value = value.replace('"', '\\"')
     value = value.replace("\n", "\\n")
-    if " " in value or "=" in value:
+    if " " in value or "=" in value or '"' in value:
         return f'"{value}"'
     return value
 
