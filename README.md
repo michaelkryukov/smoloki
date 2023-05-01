@@ -38,6 +38,25 @@ options:
   -b BASE_ENDPOINT  base address of loki server
 ```
 
+## Usage in NodeJS
+
+Install simple wrapper for installed python module:
+
+```bash
+# In your project's folder
+smoloki-wrappers --install-wrapper-for-nodejs 'node_modules/'
+```
+
+Usage is along this lines:
+
+```js
+const smoloki = require('smoloki');
+
+// This is an async function executing CLI from previous
+// chapter under the hood.
+smoloki.push({ service: 'web' }, { level: 'info', event: 'request_completed' });
+```
+
 ## Implementation details
 
 - Calls to `push` method will never throw. Any exception will just be
