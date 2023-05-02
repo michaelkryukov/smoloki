@@ -19,8 +19,8 @@ def main():
     args = parser.parse_args()
 
     if args.install_wrapper_for_nodejs:
-        source_path = os.path.join(os.path.dirname(__file__), 'nodejs.js')
-        wrapper_path = os.path.join(args.install_wrapper_for_nodejs, 'smoloki.js')
+        source_path = os.path.join(os.path.dirname(__file__), "nodejs.js")
+        wrapper_path = os.path.join(args.install_wrapper_for_nodejs, "smoloki.js")
         shutil.copy(source_path, wrapper_path)
         print(f'Installed wrapper for NodeJS: "{wrapper_path}".')
 
