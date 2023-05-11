@@ -23,14 +23,14 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/michaelkryukov/smoloki",
-    packages=setuptools.find_packages(include=("smoloki", "smoloki.wrappers")),
+    packages=setuptools.find_packages(),
     install_requires=[
         "aiohttp~=3.8.3",
     ],
     entry_points={
         "console_scripts": [
-            "smoloki=smoloki.__main__:main",
-            "smoloki-wrappers=smoloki.wrappers:main",
+            "smoloki = smoloki.__main__:main",
+            "smoloki-wrappers = smoloki.wrappers:main",
         ],
     },
     package_data={"smoloki": ["wrappers/*.js"]},
