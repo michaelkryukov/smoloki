@@ -30,10 +30,8 @@ setuptools.setup(
     entry_points={
         "console_scripts": [
             "smoloki = smoloki.__main__:main",
-            "smoloki-wrappers = smoloki.wrappers:main",
         ],
     },
-    package_data={"smoloki": ["wrappers/*.js"]},
     python_requires=">=3.7",
     classifiers=[
         "Programming Language :: Python :: 3",

@@ -4,6 +4,24 @@
 
 Tiny library to push logs to `Grafana Loki` in `logfmt` format.
 
+## CLI
+
+```text
+usage: smoloki [-h] [-b BASE_ENDPOINT] labels information
+
+cli for pushing to loki
+
+positional arguments:
+  labels            json-encoded string with labels
+  information       json-encoded string with information
+
+options:
+  -h, --help        show this help message and exit
+  -b BASE_ENDPOINT  base address of loki server
+```
+
+## Usage in Python
+
 ```py
 import smoloki
 
@@ -22,39 +40,14 @@ def as_request_completed():
     )
 ```
 
-## CLI
-
-```text
-usage: smoloki [-h] [-b BASE_ENDPOINT] labels information
-
-cli for pushing to loki
-
-positional arguments:
-  labels            json-encoded string with labels
-  information       json-encoded string with information
-
-options:
-  -h, --help        show this help message and exit
-  -b BASE_ENDPOINT  base address of loki server
-```
-
-## Usage in NodeJS
-
-Install simple wrapper for installed python module:
-
-```bash
-# In your project's folder
-smoloki-wrappers --install-wrapper-for-nodejs 'node_modules/'
-```
-
-Usage is along this lines:
+## Usage in NodeJS (not yet implemented)
 
 ```js
 const smoloki = require('smoloki');
 
-// This is an async function executing CLI from previous
-// chapter under the hood.
-smoloki.push({ service: 'web' }, { level: 'info', event: 'request_completed' });
+async function as_request_completed() {
+    await smoloki.push({ service: 'web' }, { level: 'info', event: 'request_completed' });
+}
 ```
 
 ## Implementation details
