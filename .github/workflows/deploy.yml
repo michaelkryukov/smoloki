@@ -40,11 +40,10 @@ jobs:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
   check-and-publish-javascript:
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     strategy:
       max-parallel: 4
       matrix:
-        os: [windows-latest, ubuntu-latest]
         node-version: [20]
     defaults:
       run:
