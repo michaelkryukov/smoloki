@@ -11,6 +11,9 @@ jobs:
       max-parallel: 4
       matrix:
         python-version: ["3.10"]
+    defaults:
+      run:
+        working-directory: python
     steps:
       - uses: actions/checkout@v1
       - name: Set up Python ${{ matrix.python-version }}
@@ -52,6 +55,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
+          registry-url: 'https://registry.npmjs.org'
       - name: Set correct version
         run: |
           [ "$GITHUB_REF_TYPE" = "tag" ] || exit 2
@@ -59,12 +63,14 @@ jobs:
           npm version $GITHUB_REF_NAME
       - name: Install dependencies
         run: |
-          npm i --include=dev
+          npm ci --include=dev
       - name: Lint with eslint and test with mocha
         run: |
           npm run lint
           npm run test
       - name: Publish new version
-        run: npm publish
+        run: |
+          npm run build
+          npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
