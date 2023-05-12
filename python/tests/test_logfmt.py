@@ -1,4 +1,4 @@
-from smoloki import logfmt_load, logfmt_dump
+from smoloki import logfmt_load, logfmt_dump, _logfmt_unescape
 
 CASES = [
     [{"key": "value"}, "key=value"],
@@ -25,3 +25,8 @@ def test_dump_int_and_float():
 def test_load():
     for original_value, dumped_value in CASES:
         assert logfmt_load(dumped_value) == original_value
+
+
+def test_unescape():
+    assert _logfmt_unescape('"hey"') == "hey"
+    assert _logfmt_unescape('"\\"hey\\""') == '"hey"'

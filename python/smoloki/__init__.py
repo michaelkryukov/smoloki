@@ -43,9 +43,7 @@ def _logfmt_unescape(value):
     return value
 
 
-LOGFMT_PAIR_REGEX = (
-    r'(?P<key>\w+)=(?:(?P<rvalue>[^"][^ \n]*)|\"(?P<qvalue>(?:\\.|[^\"])*)\")'
-)
+LOGFMT_PAIR_REGEX = r'(?P<key>\w+)=(?:(?P<rvalue>[^"][^ \n]*)|\"(?P<qvalue>(?:\\.|[^\"])*)\")'
 
 
 def logfmt_load(data: str) -> dict:

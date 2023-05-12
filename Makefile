@@ -1,13 +1,11 @@
-.PHONY: all
+check: check-python check-javascript
 
-all: format lint test
+check-python:
+	cd python && \
+	make lint && \
+	make test
 
-format:
-	python3 -m black .
-
-lint:
-	python3 -m black . --check
-	python3 -m flake8 . --inline-quotes '"' --max-complexity=10 --max-line-length=127
-
-test:
-	python3 -m pytest tests/
+check-javascript:
+	cd javascript \
+	npm run lint && \
+	npm run test

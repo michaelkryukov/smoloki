@@ -1,6 +1,7 @@
 # smoloki
 
 [![PyPI version](https://badge.fury.io/py/smoloki.svg)](https://badge.fury.io/py/smoloki)
+[![npm version](https://badge.fury.io/js/smoloki.svg)](https://badge.fury.io/js/smoloki)
 
 Tiny library to push logs to `Grafana Loki` in `logfmt` format.
 
@@ -40,7 +41,7 @@ def as_request_completed():
     )
 ```
 
-## Usage in NodeJS (not yet implemented)
+## Usage in NodeJS
 
 ```js
 const smoloki = require('smoloki');
