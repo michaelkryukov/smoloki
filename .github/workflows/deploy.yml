@@ -63,7 +63,7 @@ jobs:
           npm version $GITHUB_REF_NAME
       - name: Install dependencies
         run: |
-          npm ci --include=dev
+          npm install --include=dev
       - name: Lint with eslint and test with mocha
         run: |
           npm run lint

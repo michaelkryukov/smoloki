@@ -9,7 +9,7 @@ assert os.environ.get("GITHUB_REF_NAME")
 VERSION = os.environ["GITHUB_REF_NAME"]
 
 
-with open("README.md", "r") as fh:
+with open("../README.md", "r") as fh:
     long_description = fh.read()
 
 
