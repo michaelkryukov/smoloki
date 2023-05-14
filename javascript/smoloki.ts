@@ -108,7 +108,7 @@ async function push(
       ],
     });
   } catch (error) {
-    console.trace("Error while sending logs with smoloki:");
+    console.error(error.trace);
   }
 }
 
