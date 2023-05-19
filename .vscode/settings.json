@@ -1,0 +1,4 @@
+{
+  "eslint.workingDirectories": ["./javascript"],
+  "black-formatter.args": ["--line-length", "120"]
+}

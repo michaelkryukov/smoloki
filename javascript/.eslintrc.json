@@ -11,12 +11,8 @@
     "project": ["tsconfig.json"]
   },
   "rules": {
+    "import/order": "error",
     "@typescript-eslint/no-var-requires": "off",
-    "@typescript-eslint/semi": "off",
-    "@typescript-eslint/quotes": "off",
-    "@typescript-eslint/space-before-function-paren": "off",
-    "@typescript-eslint/comma-dangle": "off",
-    "max-len": ["error", { "code": 127, "tabWidth": 2 }],
-    "quotes": "off"
+    "@typescript-eslint/comma-dangle": "off"
   }
 }

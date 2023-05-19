@@ -1,7 +1,7 @@
-const sinon = require("sinon");
+const sinon = require('sinon')
 
 exports.mochaHooks = {
-  afterEach() {
-    sinon.restore();
-  },
-};
+  afterEach () {
+    sinon.restore()
+  }
+}

@@ -28,6 +28,7 @@ def test_push():
                         },
                     ],
                 },
+                headers={},
             )
 
             post.return_value.raise_for_status.assert_called_once()

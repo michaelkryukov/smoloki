@@ -7,8 +7,14 @@ import aiohttp
 import logging
 
 
-SMOLOKI_BASE_ENDPOINT_RAW = os.environ.get("SMOLOKI_BASE_ENDPOINT") or ""
-SMOLOKI_BASE_ENDPOINT = SMOLOKI_BASE_ENDPOINT_RAW
+SMOLOKI_BASE_ENDPOINT = os.environ.get("SMOLOKI_BASE_ENDPOINT") or ""
+
+SMOLOKI_HEADERS_RAW = os.environ.get("SMOLOKI_HEADERS") or "{}"
+SMOLOKI_HEADERS = json.loads(SMOLOKI_HEADERS_RAW)
+if not isinstance(SMOLOKI_HEADERS, dict):
+    raise ValueError("SMOLOKI_HEADERS should contain JSON object")
+if not all([isinstance(value, str) for value in SMOLOKI_HEADERS.values()]):
+    raise ValueError("SMOLOKI_HEADERS should contain only strings as values")
 
 SMOLOKI_BASE_LABELS_RAW = os.environ.get("SMOLOKI_BASE_LABELS") or "{}"
 SMOLOKI_BASE_LABELS = json.loads(SMOLOKI_BASE_LABELS_RAW)
@@ -95,7 +101,7 @@ def request_sync(*args, **kwargs):
     _run_as_sync(request(*args, **kwargs))
 
 
-async def push(labels, information, base_endpoint=None):
+async def push(labels, information, base_endpoint=None, headers=None):
     """Push log to loki."""
 
     base_endpoint = base_endpoint or SMOLOKI_BASE_ENDPOINT
@@ -108,6 +114,7 @@ async def push(labels, information, base_endpoint=None):
         async with aiohttp.ClientSession() as session:
             response = await session.post(
                 f"{base_endpoint.rstrip('/')}/loki/api/v1/push",
+                headers=headers or SMOLOKI_HEADERS,
                 json={
                     "streams": [
                         {
@@ -137,4 +144,4 @@ async def push(labels, information, base_endpoint=None):
 
 def push_sync(*args, **kwargs):
     """Push log to loki (synchronously)."""
-    _run_as_sync(push(*args, **kwargs))
+    return _run_as_sync(push(*args, **kwargs))
