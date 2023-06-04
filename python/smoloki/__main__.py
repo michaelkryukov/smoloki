@@ -27,7 +27,7 @@ def main():
         help="base address of loki server",
     )
     parser.add_argument(
-        "-h",
+        "-H",
         dest="headers",
         type=str,
         default="{}",

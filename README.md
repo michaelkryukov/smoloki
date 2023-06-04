@@ -8,7 +8,7 @@ Tiny library to push logs to `Grafana Loki` in `logfmt` format.
 ## CLI
 
 ```text
-usage: smoloki [-h] [-b BASE_ENDPOINT] labels information
+usage: smoloki [-h] [-b BASE_ENDPOINT] [-H HEADERS] labels information
 
 cli for pushing to loki
 
@@ -16,9 +16,10 @@ positional arguments:
   labels            json-encoded string with labels
   information       json-encoded string with information
 
-options:
+optional arguments:
   -h, --help        show this help message and exit
   -b BASE_ENDPOINT  base address of loki server
+  -H HEADERS        json-encoded string with headers for request to loki server
 ```
 
 ## Usage in Python
@@ -63,5 +64,6 @@ async function as_request_completed() {
 ## Configuration
 
 - `SMOLOKI_BASE_ENDPOINT` – base address of loki server.
+- `SMOLOKI_HEADERS` - headers for request to loki server (can be used for authorization).
 - `SMOLOKI_BASE_LABELS` - base labels that will be added to logs.
 - `SMOLOKI_BASE_INFORMATION` - base information that will be added to logs.
