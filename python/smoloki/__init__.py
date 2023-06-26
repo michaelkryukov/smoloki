@@ -111,7 +111,7 @@ async def push(labels, information, base_endpoint=None, headers=None):
         return
 
     try:
-        async with aiohttp.ClientSession() as session:
+        async with aiohttp.ClientSession(trust_env=True) as session:
             response = await session.post(
                 f"{base_endpoint.rstrip('/')}/loki/api/v1/push",
                 headers=headers or SMOLOKI_HEADERS,
