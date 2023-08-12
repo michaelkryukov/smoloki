@@ -58,8 +58,7 @@ async function as_request_completed() {
     logged using `logging`.
 - Keys in labels and information must be strings.
 - Values in labels and information must be string, integers or floats.
-- If no `base_endpoint` provided (using parameter or env), nothing
-    will happen.
+- If no `base_endpoint` provided (using parameter or env), nothing will happen.
 
 ## Configuration
 

@@ -101,7 +101,6 @@ async function push (
   const targetBaseEndpoint = baseEndpoint ?? SMOLOKI_BASE_ENDPOINT
 
   if (targetBaseEndpoint === '') {
-    console.warn("No 'base_endpoint' configured for smoloki")
     return
   }
 

@@ -107,7 +107,6 @@ async def push(labels, information, base_endpoint=None, headers=None):
     base_endpoint = base_endpoint or SMOLOKI_BASE_ENDPOINT
 
     if not base_endpoint:
-        logging.warning("No 'base_endpoint' configured for smoloki")
         return
 
     try:
