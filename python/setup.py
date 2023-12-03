@@ -6,7 +6,7 @@ import setuptools
 
 assert os.environ.get("GITHUB_REF_TYPE") == "tag"
 assert os.environ.get("GITHUB_REF_NAME")
-VERSION = os.environ["GITHUB_REF_NAME"]
+VERSION = os.environ["GITHUB_REF_NAME"].lstrip("v")
 
 
 with open("../README.md", "r") as fh:
