@@ -56,7 +56,8 @@ async function as_request_completed() {
 
 - Calls to `push` method will never throw. Any exception will just be
     logged using `logging`.
-- Keys in labels and information must be strings.
+- Keys in labels and information must be strings. If `None` is provided as
+    value in case of python, it will be serialized as empty string.
 - Values in labels and information must be string, integers or floats.
 - If no `base_endpoint` provided (using parameter or env), nothing will happen.
 
