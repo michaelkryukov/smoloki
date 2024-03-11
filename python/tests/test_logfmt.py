@@ -21,6 +21,7 @@ def test_dump_int_and_float():
     assert logfmt_dump({"key": 1}) == "key=1"
     assert logfmt_dump({"key": 1.5}) == "key=1.5"
 
+
 def test_dump_none():
     assert logfmt_dump({"key": None}) == "key="
 
