@@ -25,7 +25,7 @@ setuptools.setup(
     url="https://github.com/michaelkryukov/smoloki",
     packages=setuptools.find_packages(),
     install_requires=[
-        "aiohttp~=3.8.3",
+        "aiohttp>=3.8.3,<4",
     ],
     entry_points={
         "console_scripts": [
