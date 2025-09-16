@@ -1,11 +1,12 @@
+import asyncio
+import json
+import logging
 import os
 import re
-import json
 import time
-import asyncio
-import aiohttp
-import logging
+from typing import Set
 
+import aiohttp
 
 SMOLOKI_BASE_ENDPOINT = os.environ.get("SMOLOKI_BASE_ENDPOINT") or ""
 
@@ -84,26 +85,79 @@ def logfmt_dump(data: dict) -> str:
     return " ".join(items)
 
 
-async def request(method, endpoint, base_endpoint=None, **kwargs):
-    """Perform some request to loki endpoint."""
+def _prepare_payload(labels: dict, information: dict) -> dict:
+    return {
+        "streams": [
+            {
+                "stream": {
+                    **SMOLOKI_BASE_LABELS,
+                    **labels,
+                },
+                "values": [
+                    [
+                        str(time.time_ns()),
+                        logfmt_dump(
+                            {
+                                **SMOLOKI_BASE_INFORMATION,
+                                **information,
+                            }
+                        ),
+                    ],
+                ],
+            },
+        ],
+    }
 
-    base_endpoint = base_endpoint or SMOLOKI_BASE_ENDPOINT
 
-    async with aiohttp.ClientSession() as session:
-        async with session.request(
-            method,
-            f"{base_endpoint.rstrip('/')}{endpoint}",
-            params=kwargs,
-        ) as response:
-            return await response.json()
+class SmolokiAsyncClient:
+    def __init__(
+        self,
+        base_endpoint: str | None = None,
+        headers: dict | None = None,
+        trust_env: bool = True,
+        timeout: int | None = None,
+    ):
+        self._base_endpoint = base_endpoint or SMOLOKI_BASE_ENDPOINT
+        self._headers = headers or SMOLOKI_HEADERS
+        self._trust_env = trust_env
+        self._session: aiohttp.ClientSession | None = None
+        self._bg_tasks: Set[asyncio.Task] = set()
+        self._timeout = timeout or 60
+
+    async def __aenter__(self):
+        self._session = aiohttp.ClientSession(
+            timeout=aiohttp.ClientTimeout(total=self._timeout),
+            trust_env=self._trust_env,
+        )
+        logging.debug("Created aiohttp session for base_url=%s", self._base_endpoint)
+        return self
+
+    async def push(self, labels: dict, information: dict):
+        try:
+            logging.debug("smoloki POST %s (background=False)", self._base_endpoint)
+            response = await self._session.post(
+                f"{self._base_endpoint.rstrip('/')}/loki/api/v1/push",
+                headers=self._headers,
+                json=_prepare_payload(labels, information),
+            )
+            response.raise_for_status()
+        except Exception:
+            logging.exception("Error while sending logs with smoloki:")
+
+    async def push_in_background(self, labels: dict, information: dict):
+        task = asyncio.create_task(self.push(labels, information))
+        self._bg_tasks.add(task)
+        task.add_done_callback(lambda t: self._bg_tasks.discard(t))
+        logging.debug("Scheduled background push task for %s", self._base_endpoint)
+
+    async def __aexit__(self, exc_type, exc, tb):
+        try:
+            await asyncio.gather(*list(self._bg_tasks))
+        finally:
+            self._bg_tasks.clear()
 
 
-def request_sync(*args, **kwargs):
-    """Perform some request to loki endpoint (synchronously)."""
-    _run_as_sync(request(*args, **kwargs))
-
-
-async def push(labels, information, base_endpoint=None, headers=None):
+async def _push(labels, information, base_endpoint=None, headers=None):
     """Push log to loki."""
 
     base_endpoint = base_endpoint or SMOLOKI_BASE_ENDPOINT
@@ -116,27 +170,7 @@ async def push(labels, information, base_endpoint=None, headers=None):
             response = await session.post(
                 f"{base_endpoint.rstrip('/')}/loki/api/v1/push",
                 headers=headers or SMOLOKI_HEADERS,
-                json={
-                    "streams": [
-                        {
-                            "stream": {
-                                **SMOLOKI_BASE_LABELS,
-                                **labels,
-                            },
-                            "values": [
-                                [
-                                    str(time.time_ns()),
-                                    logfmt_dump(
-                                        {
-                                            **SMOLOKI_BASE_INFORMATION,
-                                            **information,
-                                        }
-                                    ),
-                                ],
-                            ],
-                        },
-                    ],
-                },
+                json=_prepare_payload(labels, information),
             )
             response.raise_for_status()
     except Exception:
@@ -145,4 +179,4 @@ async def push(labels, information, base_endpoint=None, headers=None):
 
 def push_sync(*args, **kwargs):
     """Push log to loki (synchronously)."""
-    return _run_as_sync(push(*args, **kwargs))
+    return _run_as_sync(_push(*args, **kwargs))
