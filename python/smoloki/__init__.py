@@ -85,7 +85,7 @@ def logfmt_dump(data: dict) -> str:
     return " ".join(items)
 
 
-def prepare_payload(labels: dict, information: dict) -> dict:
+def _prepare_payload(labels: dict, information: dict) -> dict:
     return {
         "streams": [
             {
@@ -126,7 +126,8 @@ class SmolokiAsyncClient:
 
     async def __aenter__(self):
         self._session = aiohttp.ClientSession(
-            timeout=aiohttp.ClientTimeout(total=self._timeout)
+            timeout=aiohttp.ClientTimeout(total=self._timeout),
+            trust_env=self._trust_env,
         )
         logging.debug("Created aiohttp session for base_url=%s", self._base_endpoint)
         return self
@@ -137,7 +138,7 @@ class SmolokiAsyncClient:
             response = await self._session.post(
                 f"{self._base_endpoint.rstrip('/')}/loki/api/v1/push",
                 headers=self._headers,
-                json=prepare_payload(labels, information),
+                json=_prepare_payload(labels, information),
             )
             response.raise_for_status()
         except Exception:
@@ -169,7 +170,7 @@ async def push(labels, information, base_endpoint=None, headers=None):
             response = await session.post(
                 f"{base_endpoint.rstrip('/')}/loki/api/v1/push",
                 headers=headers or SMOLOKI_HEADERS,
-                json=prepare_payload(labels, information),
+                json=_prepare_payload(labels, information),
             )
             response.raise_for_status()
     except Exception:
