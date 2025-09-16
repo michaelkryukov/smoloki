@@ -175,8 +175,8 @@ class SmolokiAsyncClient:
 
     async def push_in_background(self, labels: dict, information: dict):
         task = asyncio.create_task(self.push(labels, information))
-        task.add_done_callback(lambda t: self._bg_tasks.discard(t))
         self._bg_tasks.add(task)
+        task.add_done_callback(lambda t: self._bg_tasks.discard(t))
         logging.debug("Scheduled background push task for %s", self._base_endpoint)
 
 
