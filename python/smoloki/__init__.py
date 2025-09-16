@@ -8,7 +8,6 @@ from typing import Set
 
 import aiohttp
 
-
 SMOLOKI_BASE_ENDPOINT = os.environ.get("SMOLOKI_BASE_ENDPOINT") or ""
 
 SMOLOKI_HEADERS_RAW = os.environ.get("SMOLOKI_HEADERS") or "{}"
@@ -178,7 +177,6 @@ class SmolokiAsyncClient:
         self._bg_tasks.add(task)
         task.add_done_callback(lambda t: self._bg_tasks.discard(t))
         logging.debug("Scheduled background push task for %s", self._base_endpoint)
-
 
     async def __aexit__(self, exc_type, exc, tb):
         try:
