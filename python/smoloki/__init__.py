@@ -1,10 +1,12 @@
+import asyncio
+import json
+import logging
 import os
 import re
-import json
 import time
-import asyncio
+from typing import Set
+
 import aiohttp
-import logging
 
 
 SMOLOKI_BASE_ENDPOINT = os.environ.get("SMOLOKI_BASE_ENDPOINT") or ""
@@ -49,7 +51,9 @@ def _logfmt_unescape(value):
     return value
 
 
-LOGFMT_PAIR_REGEX = r'(?P<key>\w+)=(?:(?P<rvalue>[^"][^ \n]*)|\"(?P<qvalue>(?:\\.|[^\"])*)\")'
+LOGFMT_PAIR_REGEX = (
+    r'(?P<key>\w+)=(?:(?P<rvalue>[^"][^ \n]*)|\"(?P<qvalue>(?:\\.|[^\"])*)\")'
+)
 
 
 def logfmt_load(data: str) -> dict:
@@ -103,6 +107,87 @@ def request_sync(*args, **kwargs):
     _run_as_sync(request(*args, **kwargs))
 
 
+def prepare_payload(labels: dict, information: dict) -> dict:
+    return {
+        "streams": [
+            {
+                "stream": {
+                    **SMOLOKI_BASE_LABELS,
+                    **labels,
+                },
+                "values": [
+                    [
+                        str(time.time_ns()),
+                        logfmt_dump(
+                            {
+                                **SMOLOKI_BASE_INFORMATION,
+                                **information,
+                            }
+                        ),
+                    ],
+                ],
+            },
+        ],
+    }
+
+
+class SmolokiAsyncClient:
+    def __init__(
+        self,
+        base_endpoint: str | None = None,
+        headers: dict | None = None,
+        trust_env: bool = True,
+        timeout: int | None = None,
+    ):
+        self._base_endpoint = base_endpoint or SMOLOKI_BASE_ENDPOINT
+        self._headers = headers or SMOLOKI_HEADERS
+        self._trust_env = trust_env
+        self._session: aiohttp.ClientSession | None = None
+        self._bg_tasks: Set[asyncio.Task] = set()
+        self._timeout = timeout
+
+    async def __aenter__(self):
+        session_params = {
+            "base_url": self._base_endpoint,
+            "headers": self._headers,
+            "trust_env": self._trust_env,
+        }
+        if self._timeout:
+            session_params["timeout"] = aiohttp.ClientTimeout(total=self._timeout)
+
+        self._session = aiohttp.ClientSession(
+            **session_params,
+        )
+        logging.debug("Created aiohttp session for base_url=%s", self._base_endpoint)
+        return self
+
+    async def push(self, labels: dict, information: dict):
+        try:
+            logging.debug("smoloki POST %s (background=False)", self._base_endpoint)
+            response = await self._session.post(
+                f"{self._base_endpoint.rstrip('/')}/loki/api/v1/push",
+                headers=self._headers,
+                json=prepare_payload(labels, information),
+            )
+            response.raise_for_status()
+        except Exception:
+            logging.exception("Error while sending logs with smoloki:")
+
+    async def push_in_background(self, labels: dict, information: dict):
+        task = asyncio.create_task(self.push(labels, information))
+        task.add_done_callback(lambda t: self._bg_tasks.discard(t))
+        self._bg_tasks.add(task)
+        logging.debug("Scheduled background push task for %s", self._base_endpoint)
+
+
+    async def __aexit__(self, exc_type, exc, tb):
+        try:
+            if self._bg_tasks:
+                await asyncio.gather(*list(self._bg_tasks))
+        finally:
+            self._bg_tasks.clear()
+
+
 async def push(labels, information, base_endpoint=None, headers=None):
     """Push log to loki."""
 
@@ -116,27 +201,7 @@ async def push(labels, information, base_endpoint=None, headers=None):
             response = await session.post(
                 f"{base_endpoint.rstrip('/')}/loki/api/v1/push",
                 headers=headers or SMOLOKI_HEADERS,
-                json={
-                    "streams": [
-                        {
-                            "stream": {
-                                **SMOLOKI_BASE_LABELS,
-                                **labels,
-                            },
-                            "values": [
-                                [
-                                    str(time.time_ns()),
-                                    logfmt_dump(
-                                        {
-                                            **SMOLOKI_BASE_INFORMATION,
-                                            **information,
-                                        }
-                                    ),
-                                ],
-                            ],
-                        },
-                    ],
-                },
+                json=prepare_payload(labels, information),
             )
             response.raise_for_status()
     except Exception:
