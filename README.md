@@ -85,7 +85,7 @@ async function as_request_completed() {
 - Values in labels and information must be string, integers or floats.
 - If no `base_endpoint` provided (using parameter or env), nothing will happen.
 - When using SmolokiAsyncClient, the context manager waits for all background
-    tasks to be completed when exiting
+    tasks to be completed when exiting.
 
 ## Configuration
 
