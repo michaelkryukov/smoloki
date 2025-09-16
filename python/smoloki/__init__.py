@@ -1,10 +1,13 @@
 import asyncio
 import json
 import logging
+import threading
 import os
 import re
+import requests
 import time
 from typing import Set
+from concurrent.futures import ThreadPoolExecutor
 
 import aiohttp
 
@@ -22,14 +25,6 @@ SMOLOKI_BASE_LABELS = json.loads(SMOLOKI_BASE_LABELS_RAW)
 
 SMOLOKI_BASE_INFORMATION_RAW = os.environ.get("SMOLOKI_BASE_INFORMATION") or "{}"
 SMOLOKI_BASE_INFORMATION = json.loads(SMOLOKI_BASE_INFORMATION_RAW)
-
-
-def _run_as_sync(future):
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    if loop.is_running():
-        raise RuntimeError("You have running event loop; sync methods are unavailable")
-    loop.run_until_complete(future)
 
 
 def _logfmt_escape(value):
@@ -157,26 +152,81 @@ class SmolokiAsyncClient:
             self._bg_tasks.clear()
 
 
-async def _push(labels, information, base_endpoint=None, headers=None):
-    """Push log to loki."""
+SMOLOKI_WORKERS = int(os.environ.get("SMOLOKI_WORKERS") or 8)
 
+# One module-wide thread pool
+_EXECUTOR = ThreadPoolExecutor(max_workers=SMOLOKI_WORKERS, thread_name_prefix="push-sync")
+# Per-thread requests.Session for connection reuse
+SESSION = threading.local()
+
+
+def _get_session() -> requests.Session:
+    sess = getattr(SESSION, "session", None)
+    if sess is None:
+        sess = requests.Session()
+        setattr(SESSION, "session", sess)
+    return sess
+
+
+def push_sync(
+    labels: dict,
+    information: dict,
+    base_endpoint: str | None = None,
+    headers: dict = None,
+    timeout: float = 60.0,
+    verify: bool | str = False,
+):
+    """
+    Sends a synchronous POST request to loki.
+    - timeout: seconds (float)
+    - verify: True/False or a path to a custom CA bundle
+    """
     base_endpoint = base_endpoint or SMOLOKI_BASE_ENDPOINT
 
     if not base_endpoint:
         return
 
+    session = _get_session()
+
     try:
-        async with aiohttp.ClientSession(trust_env=True) as session:
-            response = await session.post(
-                f"{base_endpoint.rstrip('/')}/loki/api/v1/push",
-                headers=headers or SMOLOKI_HEADERS,
-                json=_prepare_payload(labels, information),
-            )
-            response.raise_for_status()
+        resp = session.post(
+            f"{base_endpoint.rstrip('/')}/loki/api/v1/push",
+            json=_prepare_payload(labels, information),
+            headers=headers or SMOLOKI_HEADERS,
+            timeout=timeout,
+            verify=verify,
+        )
+        resp.raise_for_status()
     except Exception:
         logging.exception("Error while sending logs with smoloki:")
 
 
-def push_sync(*args, **kwargs):
-    """Push log to loki (synchronously)."""
-    return _run_as_sync(_push(*args, **kwargs))
+def push_sync_in_background(
+    labels: dict,
+    information: dict,
+    base_endpoint: str | None = None,
+    headers: dict = None,
+    timeout: float = 60.0,
+    verify: bool | str = False,
+):
+    """
+    Runs `push_sync` in the background via a shared ThreadPoolExecutor.
+    """
+    fut = _EXECUTOR.submit(
+        push_sync,
+        labels,
+        information,
+        base_endpoint,
+        headers,
+        timeout,
+        verify,
+    )
+
+    # Log exceptions if the fut isn't awaited/checked by the caller
+    def _log_exceptions(f) -> None:
+        try:
+            _ = f.result()
+        except Exception:
+            logging.exception("Error while sending logs with smoloki:")
+
+    fut.add_done_callback(_log_exceptions)
