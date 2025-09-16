@@ -157,7 +157,7 @@ class SmolokiAsyncClient:
             self._bg_tasks.clear()
 
 
-async def push(labels, information, base_endpoint=None, headers=None):
+async def _push(labels, information, base_endpoint=None, headers=None):
     """Push log to loki."""
 
     base_endpoint = base_endpoint or SMOLOKI_BASE_ENDPOINT
@@ -179,4 +179,4 @@ async def push(labels, information, base_endpoint=None, headers=None):
 
 def push_sync(*args, **kwargs):
     """Push log to loki (synchronously)."""
-    return _run_as_sync(push(*args, **kwargs))
+    return _run_as_sync(_push(*args, **kwargs))
