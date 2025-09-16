@@ -85,25 +85,6 @@ def logfmt_dump(data: dict) -> str:
     return " ".join(items)
 
 
-async def request(method, endpoint, base_endpoint=None, **kwargs):
-    """Perform some request to loki endpoint."""
-
-    base_endpoint = base_endpoint or SMOLOKI_BASE_ENDPOINT
-
-    async with aiohttp.ClientSession() as session:
-        async with session.request(
-            method,
-            f"{base_endpoint.rstrip('/')}{endpoint}",
-            params=kwargs,
-        ) as response:
-            return await response.json()
-
-
-def request_sync(*args, **kwargs):
-    """Perform some request to loki endpoint (synchronously)."""
-    _run_as_sync(request(*args, **kwargs))
-
-
 def prepare_payload(labels: dict, information: dict) -> dict:
     return {
         "streams": [
@@ -141,19 +122,11 @@ class SmolokiAsyncClient:
         self._trust_env = trust_env
         self._session: aiohttp.ClientSession | None = None
         self._bg_tasks: Set[asyncio.Task] = set()
-        self._timeout = timeout
+        self._timeout = timeout or 60
 
     async def __aenter__(self):
-        session_params = {
-            "base_url": self._base_endpoint,
-            "headers": self._headers,
-            "trust_env": self._trust_env,
-        }
-        if self._timeout:
-            session_params["timeout"] = aiohttp.ClientTimeout(total=self._timeout)
-
         self._session = aiohttp.ClientSession(
-            **session_params,
+            timeout=aiohttp.ClientTimeout(total=self._timeout)
         )
         logging.debug("Created aiohttp session for base_url=%s", self._base_endpoint)
         return self
@@ -178,8 +151,7 @@ class SmolokiAsyncClient:
 
     async def __aexit__(self, exc_type, exc, tb):
         try:
-            if self._bg_tasks:
-                await asyncio.gather(*list(self._bg_tasks))
+            await asyncio.gather(*list(self._bg_tasks))
         finally:
             self._bg_tasks.clear()
 
