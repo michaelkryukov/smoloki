@@ -42,6 +42,30 @@ def as_request_completed():
     )
 ```
 
+## Usage in Python via client
+
+```py
+from smoloki import SmolokiAsyncClient
+
+
+async def push_via_client():
+    async with SmolokiAsyncClient(
+        base_endpoint = 'https://example.com',
+        headers = {...}
+    ) as client:
+        await client.push(
+            {'service': 'web'},
+            {'level': 'info', 'event': 'request_completed'},
+        )
+        
+        # or push in background
+        await client.push_in_background(
+            {'service': 'web'},
+            {'level': 'info', 'event': 'request_completed'},
+        )
+
+```
+
 ## Usage in NodeJS
 
 ```js
@@ -60,6 +84,8 @@ async function as_request_completed() {
     value in case of python, it will be serialized as empty string.
 - Values in labels and information must be string, integers or floats.
 - If no `base_endpoint` provided (using parameter or env), nothing will happen.
+- When using SmolokiAsyncClient, the context manager waits for all background
+    tasks to be completed when exiting
 
 ## Configuration
 
