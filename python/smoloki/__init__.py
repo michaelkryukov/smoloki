@@ -1,15 +1,15 @@
 import asyncio
 import json
 import logging
-import threading
 import os
 import re
-import requests
+import threading
 import time
-from typing import Set
 from concurrent.futures import ThreadPoolExecutor
+from typing import Set
 
 import aiohttp
+import requests
 
 SMOLOKI_BASE_ENDPOINT = os.environ.get("SMOLOKI_BASE_ENDPOINT") or ""
 
