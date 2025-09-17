@@ -214,7 +214,7 @@ def push_sync_in_background(
     Runs `push_sync` in the background via a shared ThreadPoolExecutor.
     """
     try:
-        fut = _EXECUTOR.submit(
+        _EXECUTOR.submit(
             push_sync,
             labels,
             information,
