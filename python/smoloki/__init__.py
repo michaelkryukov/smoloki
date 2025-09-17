@@ -213,21 +213,24 @@ def push_sync_in_background(
     """
     Runs `push_sync` in the background via a shared ThreadPoolExecutor.
     """
-    fut = _EXECUTOR.submit(
-        push_sync,
-        labels,
-        information,
-        base_endpoint,
-        headers,
-        timeout,
-        verify,
-    )
+    try:
+        fut = _EXECUTOR.submit(
+            push_sync,
+            labels,
+            information,
+            base_endpoint,
+            headers,
+            timeout,
+            verify,
+        )
 
-    # Log exceptions if the fut isn't awaited/checked by the caller
-    def _log_exceptions(f) -> None:
-        try:
-            _ = f.result()
-        except Exception:
-            logging.exception("Error while sending logs with smoloki:")
+        # Log exceptions if the fut isn't awaited/checked by the caller
+        def _log_exceptions(f) -> None:
+            try:
+                _ = f.result()
+            except Exception:
+                logging.exception("Error while sending logs with smoloki:")
 
-    fut.add_done_callback(_log_exceptions)
+        fut.add_done_callback(_log_exceptions)
+    except Exception:
+        logging.exception("Error while sending logs with smoloki:")
