@@ -7,7 +7,7 @@ import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
 from typing import Set
-
+from typing import Optional, Union
 import aiohttp
 import requests
 
@@ -107,15 +107,15 @@ def _prepare_payload(labels: dict, information: dict) -> dict:
 class SmolokiAsyncClient:
     def __init__(
         self,
-        base_endpoint: str | None = None,
-        headers: dict | None = None,
+        base_endpoint: Optional[str] = None,
+        headers: Optional[dict] = None,
         trust_env: bool = True,
-        timeout: int | None = None,
+        timeout: Optional[int] = None,
     ):
         self._base_endpoint = base_endpoint or SMOLOKI_BASE_ENDPOINT
         self._headers = headers or SMOLOKI_HEADERS
         self._trust_env = trust_env
-        self._session: aiohttp.ClientSession | None = None
+        self._session: Optional[aiohttp.ClientSession] = None
         self._bg_tasks: Set[asyncio.Task] = set()
         self._timeout = timeout or 60
 
@@ -148,6 +148,7 @@ class SmolokiAsyncClient:
     async def __aexit__(self, exc_type, exc, tb):
         try:
             await asyncio.gather(*list(self._bg_tasks))
+            await self._session.close()
         finally:
             self._bg_tasks.clear()
 
@@ -156,7 +157,7 @@ SMOLOKI_WORKERS = int(os.environ.get("SMOLOKI_WORKERS") or 8)
 
 # One module-wide thread pool
 _EXECUTOR = ThreadPoolExecutor(max_workers=SMOLOKI_WORKERS, thread_name_prefix="push-sync")
-# Per-thread requests.Session for connection reuse
+# Per-thread requests.Session for connection reuse and thread-safety
 SESSION = threading.local()
 
 
@@ -171,10 +172,10 @@ def _get_session() -> requests.Session:
 def push_sync(
     labels: dict,
     information: dict,
-    base_endpoint: str | None = None,
+    base_endpoint: Optional[str] = None,
     headers: dict = None,
     timeout: float = 60.0,
-    verify: bool | str = False,
+    verify: Union[bool, str] = False,
 ):
     """
     Sends a synchronous POST request to loki.
@@ -204,10 +205,10 @@ def push_sync(
 def push_sync_in_background(
     labels: dict,
     information: dict,
-    base_endpoint: str | None = None,
+    base_endpoint: Optional[str] = None,
     headers: dict = None,
     timeout: float = 60.0,
-    verify: bool | str = False,
+    verify: Union[bool, str] = False,
 ):
     """
     Runs `push_sync` in the background via a shared ThreadPoolExecutor.
