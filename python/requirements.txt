@@ -1,5 +1,5 @@
 aiohttp>=3.8.3,<4
-
+requests>=2.32.5,<3
 # Development requirements
 black
 flake8

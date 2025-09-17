@@ -28,13 +28,6 @@ optional arguments:
 import smoloki
 
 
-async def as_request_completed():
-    await smoloki.push(
-        {'service': 'web'},
-        {'level': 'info', 'event': 'request_completed'},
-    )
-
-
 def as_request_completed():
     smoloki.push_sync(
         {'service': 'web'},
