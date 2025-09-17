@@ -158,14 +158,14 @@ SMOLOKI_WORKERS = int(os.environ.get("SMOLOKI_WORKERS") or 8)
 # One module-wide thread pool
 _EXECUTOR = ThreadPoolExecutor(max_workers=SMOLOKI_WORKERS, thread_name_prefix="push-sync")
 # Per-thread requests.Session for connection reuse and thread-safety
-SESSION = threading.local()
+_THREAD_CONTEXT = threading.local()
 
 
 def _get_session() -> requests.Session:
-    sess = getattr(SESSION, "session", None)
+    sess = getattr(_THREAD_CONTEXT, "session", None)
     if sess is None:
         sess = requests.Session()
-        setattr(SESSION, "session", sess)
+        setattr(_THREAD_CONTEXT, "session", sess)
     return sess
 
 
@@ -223,14 +223,5 @@ def push_sync_in_background(
             timeout,
             verify,
         )
-
-        # Log exceptions if the fut isn't awaited/checked by the caller
-        def _log_exceptions(f) -> None:
-            try:
-                _ = f.result()
-            except Exception:
-                logging.exception("Error while sending logs with smoloki:")
-
-        fut.add_done_callback(_log_exceptions)
     except Exception:
         logging.exception("Error while sending logs with smoloki:")
