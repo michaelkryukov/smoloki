@@ -128,6 +128,9 @@ class SmolokiAsyncClient:
         return self
 
     async def push(self, labels: dict, information: dict):
+        if not self._base_endpoint:
+            return
+
         try:
             logging.debug("smoloki POST %s (background=False)", self._base_endpoint)
             response = await self._session.post(
